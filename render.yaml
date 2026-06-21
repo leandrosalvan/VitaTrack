@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: vitatrack-api
+    runtime: node
+    rootDir: apps/api
+    buildCommand: npm install && npm run build && npm run db:deploy
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        fromService:
+          type: static
+          name: vitatrack-web
+          property: url
+
+  - type: static
+    name: vitatrack-web
+    rootDir: apps/web
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: vitatrack-api
+          property: url
+          template: '{{host}}/api'

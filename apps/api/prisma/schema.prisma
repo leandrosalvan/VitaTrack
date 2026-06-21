@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  birthDate     DateTime?
+  weight        Float?
+  height        Float?
+  goal          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  routines      Routine[]
+  sessions      WorkoutSession[]
+  sleepLogs     SleepLog[]
+  activityLogs  ActivityLog[]
+  heartRateLogs HeartRateLog[]
+}
+
+model Exercise {
+  id           String @id @default(uuid())
+  name         String
+  muscleGroup  String
+  equipment    String?
+  instructions String?
+  createdAt    DateTime @default(now())
+
+  routineExercises RoutineExercise[]
+  setLogs          SetLog[]
+}
+
+model Routine {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  daysOfWeek  Int[]    // 0=domingo, 1=segunda...
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+  exercises   RoutineExercise[]
+  sessions    WorkoutSession[]
+}
+
+model RoutineExercise {
+  id              String @id @default(uuid())
+  routineId       String
+  exerciseId      String
+  sets            Int
+  targetReps      String
+  restSeconds     Int?
+  order           Int
+  createdAt       DateTime @default(now())
+
+  routine         Routine   @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise        Exercise  @relation(fields: [exerciseId], references: [id])
+}
+
+model WorkoutSession {
+  id          String   @id @default(uuid())
+  userId      String
+  routineId   String?
+  date        DateTime @default(now())
+  duration    Int?     // em minutos
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  routine     Routine? @relation(fields: [routineId], references: [id])
+  setLogs     SetLog[]
+}
+
+model SetLog {
+  id              String @id @default(uuid())
+  sessionId       String
+  exerciseId      String
+  setNumber       Int
+  weight          Float
+  reps            Int
+  createdAt       DateTime @default(now())
+
+  session         WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exercise        Exercise       @relation(fields: [exerciseId], references: [id])
+}
+
+model SleepLog {
+  id          String   @id @default(uuid())
+  userId      String
+  date        DateTime @db.Date
+  bedTime     DateTime
+  wakeTime    DateTime
+  totalHours  Float
+  quality     Int?     // 1 a 5
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model ActivityLog {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime @db.Date
+  steps           Int?
+  activeCalories  Int?
+  exerciseMinutes Int?
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model HeartRateLog {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime @db.Date
+  restingHr       Int?
+  avgWorkoutHr    Int?
+  source          String   @default("manual") // manual / wearable
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}

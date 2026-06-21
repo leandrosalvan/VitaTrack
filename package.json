@@ -1,0 +1,23 @@
+{
+  "name": "vitatrack",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test --workspaces",
+    "dev": "concurrently \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
+    "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "private": "true",
+  "workspaces": [
+    "apps/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
