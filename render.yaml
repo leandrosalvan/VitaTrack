@@ -3,8 +3,10 @@ services:
     name: vitatrack-api
     runtime: node
     rootDir: apps/api
-    buildCommand: npm install && npm run build && npm run db:deploy
+    buildCommand: npm install && npm run build
+    preDeployCommand: npm run db:deploy
     startCommand: npm start
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,20 +19,14 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: FRONTEND_URL
-        fromService:
-          type: static
-          name: vitatrack-web
-          property: url
+        sync: false
 
-  - type: static
+  - type: web
     name: vitatrack-web
+    runtime: static
     rootDir: apps/web
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: vitatrack-api
-          property: url
-          template: '{{host}}/api'
+        sync: false
